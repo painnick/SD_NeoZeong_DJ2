@@ -5,8 +5,10 @@
 
 #include "esp_log.h"
 
-#define MAIN_TAG "Main"
+#include <effectPwm.h>
+#include <effectDigital.h>
 
+#define MAIN_TAG "Main"
 
 #define PIN_SHOULDER_B 33
 #define PIN_ARMFIT_B 32
@@ -40,75 +42,50 @@
 #define ATTACH(NAME) ledcAttachPin(PIN_ ## NAME, CH_ ## NAME)
 #define OFF(NAME) ledcWrite(CH_ ## NAME, 0)
 
-void setup() {
+bool seqFingerB[] = {true, false, false, false, false, false, false, false};
+bool seqSoulderG[] = {true, false, false, false};
+bool seqSkirtO[] = {true, false, false, false, false, false, false, false, false, false, false};
+bool seqTableR[] = {true, false, false, false, false, false, false, false, false};
 
+EffectPwm effectShouldB(PIN_SHOULDER_B, CH_SHOULDER_B);
+EffectPwm effectArmFitB(PIN_ARMFIT_B, CH_ARMFIT_B, 100, 2);
+EffectDigital effectFingerB(PIN_FINGER_B, seqFingerB, sizeof(seqFingerB), 100);
+EffectDigital effectSoulderG(PIN_SHOULDER_G, seqSoulderG, sizeof(seqSoulderG), 300);
+EffectDigital effectWaistG(PIN_WAIST_G, seqSoulderG, sizeof(seqSoulderG), 300);
+EffectDigital effectSkirtO(PIN_SKIRT_O, seqSkirtO, sizeof(seqSkirtO), 100);
+EffectDigital effectTableR(PIN_TABLE_R, seqTableR, sizeof(seqTableR), 100);
+
+void setup() {
   ESP_LOGI(MAIN_TAG, "Setup!");
 
-  SETUP_LED(SHOULDER_B);
-  SETUP_LED(ARMFIT_B);
-  // SETUP_LED(FINGER_B);
-  SETUP_LED(SHOULDER_G);
-  SETUP_LED(WAIST_G);
-  SETUP_LED(SKIRT_O);
-  // SETUP_LED(SKIRT_R);
-  SETUP_LED(SKIRT_B);
-  SETUP_LED(TABLE_R);
-  SETUP_LED(BELLY_O);
-
-  pinMode(PIN_FINGER_B, OUTPUT);
   pinMode(PIN_SKIRT_R, OUTPUT);
-
-  ATTACH(SHOULDER_B);
-  ATTACH(ARMFIT_B);
-  // ATTACH(FINGER_B);
-  ATTACH(SHOULDER_G);
-  ATTACH(WAIST_G);
-  ATTACH(SKIRT_O);
-  // ATTACH(SKIRT_R);
-  ATTACH(SKIRT_B);
-  ATTACH(TABLE_R);
-  ATTACH(BELLY_O);
-}
-
-void fade(uint8_t ch, int step_bright, uint8_t step_delay_ms) {
-  int bright = 0;
-  for(int i = MIN_BRIGHT; i <= MAX_BRIGHT; i += step_bright) {
-    bright = min(i, MAX_BRIGHT);
-    ledcWrite(ch, bright);
-    delay(step_delay_ms);
-  }
-  for(int i = MAX_BRIGHT; i >= MIN_BRIGHT; i -= step_bright) {
-    bright = max(i, MIN_BRIGHT);
-    ledcWrite(ch, bright);
-    delay(step_delay_ms);
-  }
-  ledcWrite(ch, 0);
-}
-
-void flickr(uint8_t pin, uint8_t delay_ms, int times) {
-  for (int i = 0; i < times; i ++) {
-    digitalWrite(pin, HIGH);
-    delay(delay_ms);
-    digitalWrite(pin, LOW);
-    delay(delay_ms);
-  }
+  digitalWrite(PIN_SKIRT_R, LOW);
 }
 
 void loop() {
-  fade(CH_SHOULDER_B, 8, 25);
-  fade(CH_ARMFIT_B, 8, 25);
+  unsigned long now = millis();
+
+  effectShouldB.loop(now);
+  effectArmFitB.loop(now);
+  effectFingerB.loop(now);
+  effectSoulderG.loop(now);
+  effectWaistG.loop(now);
+  effectSkirtO.loop(now);
+  effectTableR.loop(now);
+
+  // fade(CH_ARMFIT_B, 8, 25);
   
-  flickr(PIN_FINGER_B, 500, 6);
+  // flickr(PIN_FINGER_B, 500, 6);
 
-  fade(CH_SHOULDER_G, 8, 25);
-  fade(CH_WAIST_G, 8, 25);
-  fade(CH_SKIRT_O, 8, 25);
+  // fade(CH_SHOULDER_G, 8, 25);
+  // fade(CH_WAIST_G, 8, 25);
+  // fade(CH_SKIRT_O, 8, 25);
 
-  flickr(PIN_SKIRT_R, 500, 5);
+  // flickr(PIN_SKIRT_R, 500, 5);
 
-  fade(CH_SKIRT_B, 8, 25);
-  fade(CH_TABLE_R, 8, 25);
-  fade(CH_BELLY_O, 8, 25);
+  // fade(CH_SKIRT_B, 8, 25);
+  // fade(CH_TABLE_R, 8, 25);
+  // fade(CH_BELLY_O, 8, 25);
 
-  delay(1000 * 3);
+  // delay(10);
 }
